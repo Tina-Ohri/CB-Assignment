@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drag and Drop Table with Undo</title>
+    <title>Drag and Drop Table with Undo and Redo</title>
     <style>
         table {
             border-collapse: collapse;
@@ -33,83 +33,99 @@
 <body>
 
     <table id="dragTable">
-        <tr>
-            <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell1">
-                <div class="box" id="100" draggable="true" ondragstart="drag(event)" style="background-color: #ff9999;">
-                    100</div>
-            </td>
-            <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell2">
-                <div class="box" id="200" draggable="true" ondragstart="drag(event)" style="background-color: #99ff99;">
-                    200</div>
-            </td>
-            <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell3">
-                <div class="box" id="300" draggable="true" ondragstart="drag(event)" style="background-color: #9999ff;">
-                    300</div>
-            </td>
-        </tr>
-        <tr>
-            <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell4">
-                <div class="box" id="400" draggable="true" ondragstart="drag(event)" style="background-color: #ffff99;">
-                    400</div>
-            </td>
-            <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell5">
-                <div class="box" id="500" draggable="true" ondragstart="drag(event)" style="background-color: #99ffff;">
-                    500</div>
-            </td>
-            <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell6">
-                <div class="box" id="600" draggable="true" ondragstart="drag(event)" style="background-color: #ff99ff;">
-                    600</div>
-            </td>
-        </tr>
-        <tr>
-            <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell7">
-                <div class="box" id="700" draggable="true" ondragstart="drag(event)" style="background-color: #ccffcc;">
-                    700</div>
-            </td>
-            <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell8">
-                <div class="box" id="800" draggable="true" ondragstart="drag(event)" style="background-color: #ccffff;">
-                    800</div>
-            </td>
-            <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell9">
-                <div class="box" id="900" draggable="true" ondragstart="drag(event)" style="background-color: #ffccff;">
-                    900</div>
-            </td>
-        </tr>
+        <tbody>
+            <tr>
+                <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell1">
+                    <div class="box" id="100" draggable="true" ondragstart="drag(event)"
+                        style="background-color: #ff9999;">100</div>
+                </td>
+                <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell2">
+                    <div class="box" id="200" draggable="true" ondragstart="drag(event)"
+                        style="background-color: #99ff99;">200</div>
+                </td>
+                <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell3">
+                    <div class="box" id="300" draggable="true" ondragstart="drag(event)"
+                        style="background-color: #9999ff;">300</div>
+                </td>
+            </tr>
+            <tr>
+                <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell4">
+                    <div class="box" id="400" draggable="true" ondragstart="drag(event)"
+                        style="background-color: #ffff99;">400</div>
+                </td>
+                <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell5">
+                    <div class="box" id="500" draggable="true" ondragstart="drag(event)"
+                        style="background-color: #99ffff;">500</div>
+                </td>
+                <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell6">
+                    <div class="box" id="600" draggable="true" ondragstart="drag(event)"
+                        style="background-color: #ff99ff;">600</div>
+                </td>
+            </tr>
+            <tr>
+                <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell7">
+                    <div class="box" id="700" draggable="true" ondragstart="drag(event)"
+                        style="background-color: #ccffcc;">700</div>
+                </td>
+                <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell8">
+                    <div class="box" id="800" draggable="true" ondragstart="drag(event)"
+                        style="background-color: #ccffff;">800</div>
+                </td>
+                <td ondragover="allowDrop(event)" ondrop="drop(event)" id="cell9">
+                    <div class="box" id="900" draggable="true" ondragstart="drag(event)"
+                        style="background-color: #ffccff;">900</div>
+                </td>
+            </tr>
+        </tbody>
     </table>
 
     <button onclick="addRow()">Add Row</button>
     <button onclick="undo()">Undo</button>
+    <button onclick="redo()">Redo</button>
 
     <script>
-        const stateStack = [];
+        const undoStack = [];
+        const redoStack = [];
         let isUndoing = false;
 
-        function pushState() {
-            const table = document.getElementById("dragTable").cloneNode(true);
-            console.log(table)
-            stateStack.push(table);
+        function undo() {
+            isUndoing = true;
+            popState(undoStack, redoStack);
+            isUndoing = false;
         }
 
-        function popState() {
-            if (stateStack.length > 0) {
-                const table = stateStack.pop();
-                document.getElementById("dragTable").replaceWith(table);
+        function redo() {
+            isUndoing = true;
+            popState(redoStack, undoStack);
+            isUndoing = false;
+        }
+
+        function popState(stack, oppositeStack) {
+            if (stack.length > 0) {
+                const tableHtml = stack.pop();
+                oppositeStack.push(document.getElementById("dragTable").outerHTML);
+                document.getElementById("dragTable").outerHTML = tableHtml;
+                addEventListeners();
             }
         }
 
-        function drag(event) {
-            pushState();
-            event.dataTransfer.setData("text", event.target.id);
-
-            event.target.style.opacity = "1";
+        function pushState() {
+            const table = document.getElementById("dragTable").outerHTML;
+            undoStack.push(table);
+            redoStack.length = 0; // Clear redo stack when a new action is performed
         }
 
+        function drag(event) {
+            event.dataTransfer.setData("text", event.target.id);
+            event.target.style.opacity = "1";
+        }
 
         function allowDrop(event) {
             event.preventDefault();
         }
 
         function drop(event) {
+            pushState();
             event.preventDefault();
             const data = event.dataTransfer.getData("text");
             const sourceElement = document.getElementById(data);
@@ -129,6 +145,21 @@
             }
         }
 
+        function addEventListeners() {
+            const cells = document.querySelectorAll("td");
+            cells.forEach(cell => {
+                cell.ondragover = allowDrop;
+                cell.ondrop = drop;
+            });
+
+            const boxes = document.querySelectorAll(".box");
+            boxes.forEach(box => {
+                box.ondragstart = drag;
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", addEventListeners);
+
         function addRow() {
             pushState();
             const table = document.getElementById("dragTable");
@@ -139,14 +170,11 @@
 
             for (let i = 1; i <= totalColumns; i++) {
                 const newCell = newRow.insertCell(i - 1);
-                const boxId = (lastRowIndex * totalColumns + i) * 100;
+                const boxId = (lastRowIndex * totalColumns + i) * 100 + 1000;
                 newCell.innerHTML = `<div class="box" id="${boxId}" draggable="true" ondragstart="drag(event)" style="background-color: #cccccc;">${boxId}</div>`;
                 newCell.ondragover = allowDrop;
                 newCell.ondrop = drop;
             }
-        }
-        function undo() {
-            popState();
         }
     </script>
 
